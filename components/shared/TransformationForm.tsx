@@ -164,18 +164,19 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
   }
 
   const onTransformHandler = async () => {
-    setIsTransforming(true)
-
+    setIsTransforming(true);
+  
     setTransformationConfig(
-      deepMergeObjects(newTransformation, transformationConfig)
-    )
-
-    setNewTransformation(null)
-
+      deepMergeObjects(newTransformation || {}, transformationConfig || {})
+    );
+  
+    setNewTransformation(null);
+  
     startTransition(async () => {
-      await updateCredits(userId, creditFee)
-    })
-  }
+      await updateCredits(userId, creditFee);
+    });
+  };
+  
 
   useEffect(() => {
     if(image && (type === 'restore' || type === 'removeBackground')) {
