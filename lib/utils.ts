@@ -5,6 +5,7 @@ import qs from "qs";
 import { twMerge } from "tailwind-merge";
 
 import { aspectRatioOptions } from "@/constants";
+import { IntegerType } from "mongodb";
 
 /**
  * Combines multiple class names into one string, merging Tailwind classes.
@@ -84,7 +85,7 @@ export const dataUrl: string = `data:image/svg+xml;base64,${toBase64(
 interface FormUrlQueryParams {
   searchParams: string;
   key: string;
-  value: string;
+  value: IntegerType;
 }
 
 /**
