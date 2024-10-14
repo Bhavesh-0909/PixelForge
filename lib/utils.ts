@@ -85,7 +85,7 @@ export const dataUrl: string = `data:image/svg+xml;base64,${toBase64(
 interface FormUrlQueryParams {
   searchParams: string;
   key: string;
-  value: IntegerType;
+  value: string;
 }
 
 /**
