@@ -1,20 +1,94 @@
-import { SignedIn } from "@clerk/nextjs";
-import { auth } from "@clerk/nextjs/server"
-import Image from "next/image";
-import { redirect } from "next/navigation";
+'use client';
 
 import Header from "@/components/shared/Header";
 import { Button } from "@/components/ui/button";
-import { plans } from "@/constants";
-import { getUserById } from "@/lib/actions/user.actions";
-import Checkout from "@/components/shared/Checkout";
+import { useUser } from "@clerk/nextjs";
+import { updateCredits } from "@/lib/actions/user.actions";
 
-const Credits = async () => {
-  const { userId } = auth();
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
-  if (!userId) redirect("/sign-in");
+const Credits = () => {
+  const { user } = useUser();
+  console.log(user);
+  
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
 
-  const user = await getUserById(userId);
+  const handlePayment = async (amount: number, receipt: string) => {
+    const isLoaded = await loadRazorpayScript();
+    if (!isLoaded) {
+      alert('Failed to load payment gateway. Please try again.');
+      return;
+    }
+
+    try {
+      const orderResponse = await fetch('http://localhost:8000/api/v1/razorpay/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount, // Amount in INR
+          currency: 'INR',
+          email: receipt,
+        }),
+      });
+
+      const order = await orderResponse.json();
+      if (!order || !order.id) {
+        alert('Failed to create order. Please try again.');
+        return;
+      }
+
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Public Key from Razorpay Dashboard
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Pixel Forge',
+        description: 'Test Transaction',
+        image: '/logo.jpg', // Replace with your logo if available
+        order_id: order.id,
+        handler: async (response) => {
+          // Handle payment success
+          alert(`Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
+          
+          // Update user credits
+          await updateCredits(user?.id as string, amount)
+          .then((updatedUser) => {
+            console.log('User credits updated successfully!', updatedUser);
+          }).catch((error) => {
+            console.error('Failed to update user credits!', error);
+          });
+          
+        },
+        prefill: {
+          name: user?.fullName, // Replace with the customer's name
+          email: user?.primaryEmailAddress?.emailAddress, // Replace with the customer's email
+          contact: '9999999999',
+        },
+        theme: {
+          color: '#F37254', // Customize the checkout window theme color
+        },
+      };
+
+      const paymentObject = new window.Razorpay(options);
+      paymentObject.open(); // Open the Razorpay checkout window
+
+    } catch (error) {
+      alert('Error in payment: ' + (error as Error).message);
+    }
+  };
 
   return (
     <>
@@ -23,57 +97,7 @@ const Credits = async () => {
         subtitle="Choose a credit package that suits your needs!"
       />
 
-      <section>
-        <ul className="credits-list">
-          {plans.map((plan) => (
-            <li key={plan.name} className="credits-item">
-              <div className="flex-center flex-col gap-3">
-                <Image src={plan.icon} alt="check" width={50} height={50} />
-                <p className="p-20-semibold mt-2 text-green-500">
-                  {plan.name}
-                </p>
-                <p className="h1-semibold text-dark-600">${plan.price}</p>
-                <p className="p-16-regular">{plan.credits} Credits</p>
-              </div>
-
-              {/* Inclusions */}
-              <ul className="flex flex-col gap-5 py-9">
-                {plan.inclusions.map((inclusion) => (
-                  <li
-                    key={plan.name + inclusion.label}
-                    className="flex items-center gap-4"
-                  >
-                    <Image
-                      src={`/assets/icons/${
-                        inclusion.isIncluded ? "check.svg" : "cross.svg"
-                      }`}
-                      alt="check"
-                      width={24}
-                      height={24}
-                    />
-                    <p className="p-16-regular">{inclusion.label}</p>
-                  </li>
-                ))}
-              </ul>
-
-              {plan.name === "Free" ? (
-                <Button variant="outline" className="credits-btn">
-                  Free Consumable
-                </Button>
-              ) : (
-                <SignedIn>
-                  <Checkout
-                    plan={plan.name}
-                    amount={plan.price}
-                    credits={plan.credits}
-                    buyerId={user._id}
-                  />
-                </SignedIn>
-              )}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <Button onClick={() => handlePayment(200, "bhavesh")}>Pay</Button>
     </>
   );
 };

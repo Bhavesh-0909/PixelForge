@@ -74,15 +74,16 @@ export async function deleteUser(clerkId: string) {
 }
 
 // USE CREDITS
-export async function updateCredits(userId: string, creditFee: number) {
+// USE CREDITS
+export async function updateCredits(clerkId: string, creditFee: number) {
   try {
     await connectToDatabase();
-
+    const credit = creditFee/10;
     const updatedUserCredits = await User.findOneAndUpdate(
-      { _id: userId },
-      { $inc: { creditBalance: creditFee }},
+      { clerkId: clerkId }, // Query using clerkId, not _id
+      { $inc: { creditBalance: credit } },
       { new: true }
-    )
+    );
 
     if(!updatedUserCredits) throw new Error("User credits update failed");
 
