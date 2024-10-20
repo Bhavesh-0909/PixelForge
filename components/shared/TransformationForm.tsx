@@ -29,11 +29,12 @@ import { useEffect, useState, useTransition } from "react"
 import { AspectRatioKey, debounce, deepMergeObjects } from "@/lib/utils"
 import MediaUploader from "./MediaUploader"
 import TransformedImage from "./TransformedImage"
-import { updateCredits } from "@/lib/actions/user.actions"
+import { deductCredits } from "@/lib/actions/user.actions"
 import { getCldImageUrl } from "next-cloudinary"
 import { addImage, updateImage } from "@/lib/actions/image.actions"
 import { useRouter } from "next/navigation"
 import { InsufficientCreditsModal } from "./InsufficientCreditsModal"
+import FeedbackButton from "../component/FeedbackButton"
  
 export const formSchema = z.object({
   title: z.string(),
@@ -45,6 +46,7 @@ export const formSchema = z.object({
 
 const TransformationForm = ({ action, data = null, userId, type, creditBalance, config = null }: TransformationFormProps) => {
   const transformationType = transformationTypes[type];
+  const [feedback, setFeedback] = useState(false)
   const [image, setImage] = useState(data)
   const [newTransformation, setNewTransformation] = useState<Transformations | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -173,8 +175,11 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
     setNewTransformation(null);
   
     startTransition(async () => {
-      await updateCredits(userId, creditFee);
+      await deductCredits(userId, creditFee);
     });
+
+    setFeedback(true);
+    
   };
   
 
@@ -183,6 +188,10 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
       setNewTransformation(transformationType.config)
     }
   }, [image, transformationType.config, type])
+
+  const handleFeedback = () => {
+    router.push('/feedback')
+  }
 
   return (
     <Form {...form}>
@@ -310,6 +319,7 @@ const TransformationForm = ({ action, data = null, userId, type, creditBalance, 
           >
             {isSubmitting ? 'Submitting...' : 'Save Image'}
           </Button>
+          {feedback && <FeedbackButton onClick={handleFeedback} className="submit-button capitalize"/>}
         </div>
       </form>
     </Form>
