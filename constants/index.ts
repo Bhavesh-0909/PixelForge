@@ -5,6 +5,11 @@ export const navLinks = [
       icon: "/assets/icons/home.svg",
     },
     {
+      label: "Text to Speech",
+      route: "/image-genration",
+      icon: "/assets/icons/image.svg",
+    },
+    {
       label: "Image Restore",
       route: "/transformations/add/restore",
       icon: "/assets/icons/image.svg",
