@@ -1,9 +1,9 @@
 'use client';
 
-import Header from "@/components/shared/Header";
-import { Button } from "@/components/ui/button";
+import React from 'react';
 import { useUser } from "@clerk/nextjs";
 import { updateCredits } from "@/lib/actions/user.actions";
+import { Button } from "@/components/ui/button";
 
 declare global {
   interface Window {
@@ -11,10 +11,10 @@ declare global {
   }
 }
 
-const Credits = () => {
+const Credits: React.FC = () => {
   const { user } = useUser();
-  console.log(user);
-  
+
+  // Load the Razorpay script dynamically
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
       const script = document.createElement('script');
@@ -91,14 +91,46 @@ const Credits = () => {
   };
 
   return (
-    <>
-      <Header
-        title="Buy Credits"
-        subtitle="Choose a credit package that suits your needs!"
-      />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <h1 className="text-4xl font-extrabold text-gray-800 mb-6">Select Your Plan</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl w-full">
+        {/* Free Plan Card */}
+        <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200 transition transform hover:scale-105">
+          <div className="p-6 text-center">
+            <h2 className="text-2xl font-bold text-gray-700">Free Plan</h2>
+            <h3 className="text-3xl font-semibold text-gray-800">₹0</h3>
+            <ul className="mt-4 space-y-2">
+              <li className="text-gray-600">20 free credits</li>
+              <li className="text-gray-600">Unlimited text to image conversion</li>
+            </ul>
+            <Button className="mt-6 w-full bg-blue-600 text-white hover:bg-blue-700 transition duration-200">
+              Get Free Plan
+            </Button>
+          </div>
+        </div>
 
-      <Button onClick={() => handlePayment(200, "bhavesh")}>Pay</Button>
-    </>
+        {/* Paid Plan Card */}
+        <div className="bg-white shadow-lg rounded-lg overflow-hidden border border-gray-200 transition transform hover:scale-105">
+          <div className="p-6 text-center">
+            <h2 className="text-2xl font-bold text-gray-700">Pro Plan</h2>
+            <h3 className="text-3xl font-semibold text-gray-800">₹200 for 20 credits</h3>
+            <ul className="mt-4 space-y-2">
+              <li className="text-gray-600">Everything in Free Plan</li>
+              <li className="text-gray-600">Image recolor</li>
+              <li className="text-gray-600">Object remove</li>
+              <li className="text-gray-600">Image enhancer</li>
+              <li className="text-gray-600">Object resize</li>
+            </ul>
+            <Button
+              className="mt-6 w-full bg-green-600 text-white hover:bg-green-700 transition duration-200"
+              onClick={() => handlePayment(20000, user?.primaryEmailAddress?.emailAddress || '')}
+            >
+              Get Pro Plan
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

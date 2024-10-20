@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import User from "../database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
 import { handleError } from "../utils";
+import Feedback from "../database/models/feedback.model";
 
 // CREATE
 export async function createUser(user: CreateUserParams) {
@@ -107,6 +108,34 @@ export async function deductCredits(clerkId: string, creditFee: number) {
     if(!updatedUserCredits) throw new Error("User credits update failed");
 
     return JSON.parse(JSON.stringify(updatedUserCredits));
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+export async function addCreditPoints(email: string) {
+  try {
+    await connectToDatabase();
+    const creditPoints = 10;
+    const updatedUserCredits = await User.findOneAndUpdate(
+      { email },
+      { $inc: { creditBalance: creditPoints } },
+      { new: true }
+    );
+    if (!updatedUserCredits) throw new Error("User credits update failed");
+
+    return "Credit points added successfully to email: " + email;
+  } catch (error) {
+    handleError(error);
+  }
+}
+
+export async function feedback(name: string, email: string, message: string) {
+  try {
+    await connectToDatabase();
+    const feedback = new Feedback({ name, email, message });
+    await feedback.save();
+    return 'Feedback submitted successfully!';
   } catch (error) {
     handleError(error);
   }
