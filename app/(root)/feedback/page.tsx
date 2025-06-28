@@ -15,7 +15,7 @@ export default function FeedbackForm() {
   const router = useRouter();
   const { toast } = useToast();
 
-  async function submitFeedback(e) {
+  async function submitFeedback(e: { preventDefault: () => void; }) {
     e.preventDefault();
     const res = await feedback(name, email, message);
     toast({

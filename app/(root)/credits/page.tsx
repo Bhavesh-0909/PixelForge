@@ -59,7 +59,7 @@ const Credits: React.FC = () => {
         description: 'Test Transaction',
         image: '/logo.jpg', // Replace with your logo if available
         order_id: order.id,
-        handler: async (response) => {
+        handler: async (response: { razorpay_payment_id: any; }) => {
           // Handle payment success
           alert(`Payment Successful! Payment ID: ${response.razorpay_payment_id}`);
           
